@@ -1,12 +1,11 @@
 import { Server } from '@overnightjs/core';
-import dotenv from 'dotenv';
+import { config } from 'dotenv';
 import path from 'path';
 import glob from 'glob';
 import errorHandler from 'errorhandler';
 
-// import logger from './utils/logger';
 
-dotenv.config();
+config();
 
 
 export class API extends Server {
@@ -19,6 +18,9 @@ export class API extends Server {
         this.setupExpress();
 
         const controllers = await this.setupControllers();
+
+        console.dir(controllers);
+
         super.addControllers_(controllers);
     }
 
@@ -28,13 +30,22 @@ export class API extends Server {
 
     private async setupControllers(): Promise<Array<API>> {
         const modules = glob.sync('*/controllers/*.controller.ts');
-        console.dir(modules);
-        return await Promise.all(modules.map((controller: any) => import(path.resolve('.', controller))));
+        const controllers = await Promise.all(modules.map(async (controller: any) => {
+            const p: string = path.resolve('.', controller);
+            const module = await import(p);
+            const Controller = module.default;
+            return new Controller();
+        }));
+
+        return controllers;
+
+        // return await Promise.all(modules.map((controller: any) => controller));
     }
 
-    public start(port: number) {
+    public start(): void {
+        const port: number = Number(process.env.EXPRESS_PORT) || 3000;
         this.app_.listen(
-            Number(process.env.EXPRESS_PORT) || 3000,
+            port,
             undefined,
             undefined,
             async () => {
@@ -46,6 +57,6 @@ export class API extends Server {
 
 
 const server = new API();
-server.init();
 
-export default API;
+server.init()
+    .then(() => server.start());

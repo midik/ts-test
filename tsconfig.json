@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "es6",
-        "module": "commonjs",
+        "module": "esnext",
         "esModuleInterop": true,
         "noImplicitAny": true,
         "moduleResolution": "node",
@@ -16,6 +16,6 @@
         "experimentalDecorators": true
     },
     "include": [
-        "src/**/*"
+        "src/**/*.ts"
     ]
 }
