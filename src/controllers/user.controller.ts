@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { Controller, Get, Post } from '@overnightjs/core';
-// import API from '../app';
+// import { API } from '../app';
 
 console.log('users');
 
 
 @Controller('users')
-export default class UserController /*extends API */{
+export default class UserController /* extends API */ {
 
     @Get(':id')
     getUser(req: Request, res: Response): void {

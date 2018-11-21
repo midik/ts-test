@@ -3,9 +3,10 @@ import { config } from 'dotenv';
 import path from 'path';
 import glob from 'glob';
 import errorHandler from 'errorhandler';
+import DbConnection from './db/pg';
+import UserController from './controllers/user.controller';
 
-
-config();
+config(); // dotenv
 
 
 export class API extends Server {
@@ -15,31 +16,30 @@ export class API extends Server {
     }
 
     public async init(): Promise<void> {
-        this.setupExpress();
+        this.app_.use(errorHandler());
+        // this.dbConnection = new DbConnection();
 
         const controllers = await this.setupControllers();
-
         console.dir(controllers);
 
         super.addControllers_(controllers);
     }
 
-    private setupExpress(): void {
-        this.app_.use(errorHandler());
-    }
-
     private async setupControllers(): Promise<Array<API>> {
         const modules = glob.sync('*/controllers/*.controller.ts');
-        const controllers = await Promise.all(modules.map(async (controller: any) => {
+
+        // TODO
+        return await Promise.all(modules.map(async (controller: any) => {
             const p: string = path.resolve('.', controller);
-            const module = await import(p);
-            const Controller = module.default;
-            return new Controller();
+            await import(p);
+
+            // const Controller = module.default;
+            // return new UserController.default();
+
+            const controllerInstance = new UserController();
+            controllerInstance.setDbConnection(this.dbConnection);
+            return controllerInstance;
         }));
-
-        return controllers;
-
-        // return await Promise.all(modules.map((controller: any) => controller));
     }
 
     public start(): void {
@@ -49,7 +49,7 @@ export class API extends Server {
             undefined,
             undefined,
             async () => {
-                console.info(`Express listening on port ${port}`);
+                console.info(`Express is listening on port ${port}`);
             }
         );
     }
